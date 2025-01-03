@@ -270,6 +270,7 @@ struct FrameInfo_t
 {
 	bool useFSRLayer0;
 	bool useNISLayer0;
+	bool useNNUSLayer0;
 	bool bFadingOut;
 	BlurMode blurLayer0;
 	int blurRadius;
@@ -522,7 +523,7 @@ struct VulkanOutput_t
 
 	std::array<gamescope::OwningRc<CVulkanTexture>, 2> pScreenshotImages;
 
-	// NIS and FSR
+	// NIS, NNUS and FSR
 	gamescope::OwningRc<CVulkanTexture> tmpOutput;
 
 	// NIS
@@ -539,6 +540,7 @@ enum ShaderType {
 	SHADER_TYPE_EASU,
 	SHADER_TYPE_RCAS,
 	SHADER_TYPE_NIS,
+	SHADER_TYPE_NNUS,
 	SHADER_TYPE_RGB_TO_NV12,
 
 	SHADER_TYPE_COUNT

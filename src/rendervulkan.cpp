@@ -47,6 +47,7 @@
 #include "cs_gaussian_blur_horizontal.h"
 #include "cs_nis.h"
 #include "cs_nis_fp16.h"
+#include "cs_nnus.h"
 #include "cs_rgb_to_nv12.h"
 
 #define A_CPU
@@ -897,6 +898,7 @@ bool CVulkanDevice::createShaders()
 		SHADER(EASU, cs_easu);
 		SHADER(NIS, cs_nis);
 	}
+	SHADER(NNUS, cs_nnus);
 	SHADER(RGB_TO_NV12, cs_rgb_to_nv12);
 #undef SHADER
 
@@ -1127,6 +1129,7 @@ void CVulkanDevice::compileAllPipelines()
 	SHADER(RCAS, k_nMaxLayers, k_nMaxYcbcrMask_ToPreCompile, 1);
 	SHADER(EASU, 1, 1, 1);
 	SHADER(NIS, 1, 1, 1);
+	SHADER(NNUS, 1, 1, 1);
 	SHADER(RGB_TO_NV12, 1, 1, 1);
 #undef SHADER
 
@@ -3978,6 +3981,38 @@ std::optional<uint64_t> vulkan_composite( struct FrameInfo_t *frameInfo, gamesco
 		bind_all_layers(cmdBuffer.get(), &nisFrameInfo);
 		cmdBuffer->bindTarget(compositeImage);
 		cmdBuffer->uploadConstants<BlitPushData_t>(&nisFrameInfo);
+
+		int pixelsPerGroup = 8;
+
+		cmdBuffer->dispatch(div_roundup(currentOutputWidth, pixelsPerGroup), div_roundup(currentOutputHeight, pixelsPerGroup));
+	}
+	else if ( frameInfo->useNNUSLayer0 )
+	{
+		uint32_t inputX = frameInfo->layers[0].tex->width();
+		uint32_t inputY = frameInfo->layers[0].tex->height();
+
+		uint32_t tempX = inputX*2;
+		uint32_t tempY = inputY*2;
+
+		update_tmp_images(tempX, tempY);
+
+		cmdBuffer->bindPipeline(g_device.pipeline(SHADER_TYPE_NNUS));
+		cmdBuffer->bindTarget(g_output.tmpOutput);
+		cmdBuffer->bindTexture(0, frameInfo->layers[0].tex);
+		cmdBuffer->setTextureSrgb(0, true);
+		cmdBuffer->setSamplerUnnormalized(0, false);
+		cmdBuffer->setSamplerNearest(0, false);
+		cmdBuffer->dispatch(div_roundup(inputX, 8), div_roundup(inputY, 8));
+
+		struct FrameInfo_t nnusFrameInfo = *frameInfo;
+		nnusFrameInfo.layers[0].tex = g_output.tmpOutput;
+		nnusFrameInfo.layers[0].scale.x *= 2.0f;
+		nnusFrameInfo.layers[0].scale.y *= 2.0f;
+
+		cmdBuffer->bindPipeline( g_device.pipeline(SHADER_TYPE_BLIT, nnusFrameInfo.layerCount, nnusFrameInfo.ycbcrMask(), 0u, nnusFrameInfo.colorspaceMask(), outputTF ));
+		bind_all_layers(cmdBuffer.get(), &nnusFrameInfo);
+		cmdBuffer->bindTarget(compositeImage);
+		cmdBuffer->uploadConstants<BlitPushData_t>(&nnusFrameInfo);
 
 		int pixelsPerGroup = 8;
 

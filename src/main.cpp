@@ -162,9 +162,10 @@ const char usage[] =
 	"  -r, --nested-refresh           game refresh rate (frames per second)\n"
 	"  -m, --max-scale                maximum scale factor\n"
 	"  -S, --scaler                   upscaler type (auto, integer, fit, fill, stretch)\n"
-	"  -F, --filter                   upscaler filter (linear, nearest, fsr, nis, pixel)\n"
+	"  -F, --filter                   upscaler filter (linear, nearest, fsr, nis, nnus, pixel)\n"
 	"                                     fsr => AMD FidelityFX™ Super Resolution 1.0\n"
 	"                                     nis => NVIDIA Image Scaling v1.0.3\n"
+	"                                     nnus => Simple neural network upscaler\n"
 	"  --sharpness, --fsr-sharpness   upscaler sharpness from 0 (max) to 20 (min)\n"
 	"  --expose-wayland               support wayland clients using xdg-shell\n"
 	"  -s, --mouse-sensitivity        multiply mouse movement by given decimal number\n"
@@ -263,6 +264,7 @@ const char usage[] =
 	"  Super + N                      toggle nearest neighbour filtering\n"
 	"  Super + U                      toggle FSR upscaling\n"
 	"  Super + Y                      toggle NIS upscaling\n"
+	"  Super + Shift + Y              toggle NNUS upscaling\n"
 	"  Super + I                      increase FSR sharpness by 1\n"
 	"  Super + O                      decrease FSR sharpness by 1\n"
 	"  Super + S                      take a screenshot\n"
@@ -391,6 +393,8 @@ static enum GamescopeUpscaleFilter parse_upscaler_filter(const char *str)
 		return GamescopeUpscaleFilter::FSR;
 	} else if (strcmp(str, "nis") == 0) {
 		return GamescopeUpscaleFilter::NIS;
+	} else if (strcmp(str, "nnus") == 0) {
+		return GamescopeUpscaleFilter::NNUS;
 	} else if (strcmp(str, "pixel") == 0) {
 		return GamescopeUpscaleFilter::PIXEL;
 	} else {

@@ -724,8 +724,16 @@ namespace gamescope
 									GamescopeUpscaleFilter::LINEAR : GamescopeUpscaleFilter::FSR;
 								break;
 							case KEY_Y:
-								g_wantedUpscaleFilter = (g_wantedUpscaleFilter == GamescopeUpscaleFilter::NIS) ? 
-									GamescopeUpscaleFilter::LINEAR : GamescopeUpscaleFilter::NIS;
+								if ( event.key.keysym.mod & KMOD_SHIFT )
+								{
+									g_wantedUpscaleFilter = (g_wantedUpscaleFilter == GamescopeUpscaleFilter::NNUS) ? 
+										GamescopeUpscaleFilter::LINEAR : GamescopeUpscaleFilter::NNUS;
+								}
+								else
+								{
+									g_wantedUpscaleFilter = (g_wantedUpscaleFilter == GamescopeUpscaleFilter::NIS) ? 
+										GamescopeUpscaleFilter::LINEAR : GamescopeUpscaleFilter::NIS;
+								}
 								break;
 							case KEY_I:
 								g_upscaleFilterSharpness = std::min(20, g_upscaleFilterSharpness + 1);
